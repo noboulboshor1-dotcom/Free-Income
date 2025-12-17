@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mini App Earner</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src='//libtl.com/sdk.js' data-zone='10337526' data-sdk='show_10337526'></script>
+    
+    <style>
+        :root {
+            --primary: #0088cc;
+            --bg-color: #f4f4f5;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --danger: #ff4757;
+            --success: #2ed573;
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Hind Siliguri', sans-serif; background: var(--bg-color); color: var(--text-main); user-select: none; }
+
+        /* --- LOGIN SCREEN --- */
+        #login-view {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #fff 100%);
+        }
+        .login-card {
+            background: white; width: 100%; max-width: 350px; padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;
+        }
+        .login-input {
+            width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #ddd;
+            border-radius: 12px; font-size: 16px; background: #fafafa;
+        }
+        .checkbox-container {
+            display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 14px; color: #666; justify-content: flex-start;
+        }
+        .btn-primary {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            background: var(--primary); color: white; font-size: 16px; font-weight: bold;
+            cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* --- MAIN APP --- */
+        #app-view { display: none; padding-bottom: 80px; } 
+
+        /* Header */
+        .header {
+            background: var(--primary); color: white; padding: 20px; padding-top: 40px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            box-shadow: 0 5px 15px rgba(0,136,204,0.3);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .balance-badge {
+            background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-weight: bold;
+        }
+
+        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .notice-box { background: #fff3cd; color: #856404; padding: 15px; border-radius: 12px; font-size: 14px; margin-bottom: 20px; border-left: 5px solid #ffc107; }
+
+        .task-btn {
+            background: linear-gradient(45deg, #11998e, #38ef7d); color: white;
+            padding: 20px; border-radius: 15px; text-align: center; width: 100%; border: none;
+            font-size: 18px; font-weight: bold; box-shadow: 0 5px 15px rgba(46, 213, 115, 0.4);
+            cursor: pointer; margin-bottom: 15px;
+        }
+        .task-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        
+        .channel-btn {
+            background: #229ED9; color: white; width: 100%; padding: 15px; border: none;
+            border-radius: 12px; font-weight: bold; margin-top: 10px; display: flex;
+            align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-item { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .wallet-balance { font-size: 32px; font-weight: 700; color: var(--primary); text-align: center; margin: 20px 0; }
+
+        /* --- BOTTOM NAVIGATION --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #fff; padding: 10px 0;
+            display: flex; justify-content: space-around;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #777; font-size: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+
+        /* Loader */
+        .loader {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 200; justify-content: center; align-items: center;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="fullLoader" class="loader"><div class="spinner"></div></div>
+
+<div id="login-view">
+    <div class="login-card">
+        <div style="font-size: 40px; color: var(--primary); margin-bottom: 10px;">
+            <i class="fas fa-gift"></i>
+        </div>
+        <h2>লগইন / বোনাস</h2>
+        <p style="color: #666; font-size: 14px;">প্রথমবার লগইন করলেই পাচ্ছেন বোনাস!</p>
+        
+        <input type="text" id="usernameInput" class="login-input" placeholder="ইউজারনেম (English)">
+        <input type="password" id="passwordInput" class="login-input" placeholder="পাসওয়ার্ড দিন">
+        <input type="text" id="refInput" class="login-input" placeholder="রেফার কোড (যদি থাকে)">
+        
+        <div class="checkbox-container">
+            <input type="checkbox" id="rememberMe" style="width: 18px; height: 18px;">
+            <label for="rememberMe">Remember Me</label>
+        </div>
+        
+        <button class="btn-primary" onclick="handleAuth()">এগিয়ে যান</button>
+        <p id="loginError" style="color: red; font-size: 12px; display: none; margin-top: 10px;"></p>
+    </div>
+</div>
+
+<div id="app-view">
+    <div class="header">
+        <div>
+            <span style="font-size: 14px; opacity: 0.9;">Hello,</span><br>
+            <strong id="displayUsername" style="font-size: 18px;">User</strong>
+        </div>
+        <div class="balance-badge">
+            ৳ <span id="headerBalance">0.00</span>
+        </div>
+    </div>
+
+    <div id="tab-home" class="section active">
+        <div id="noticeArea" class="notice-box" style="display: none;">
+            <i class="fas fa-bullhorn"></i> <span id="noticeText"></span>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <i class="fas fa-eye" style="color: var(--primary); font-size: 24px;"></i>
+                <div style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="adsToday">0</div>
+                <small>আজকের কাজ</small>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-users" style="color: var(--success); font-size: 24px;"></i>
+                <div style="font-size: 20px; font-weight: bold; margin-top: 5px;" id="totalRef">0</div>
+                <small>মোট রেফার</small>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>আমাদের চ্যানেল</h3>
+            <p style="font-size: 13px; color: #666;">আপডেট পেতে এখনই জয়েন করুন</p>
+            <button class="channel-btn" onclick="joinChannel()">
+                <i class="fab fa-telegram-plane"></i> Join Telegram
+            </button>
+        </div>
+    </div>
+
+    <div id="tab-task" class="section">
+        <div class="card" style="text-align: center;">
+            <h3>ভিডিও টাস্ক</h3>
+            <p>ভিডিও দেখে আয় করুন।</p>
+            <div style="margin: 20px 0;">
+                <span style="font-size: 14px; color: #555;">আজকের বাকি: </span>
+                <strong style="color: var(--primary);" id="limitDisplay">0/0</strong>
+            </div>
+            <button id="adBtn" class="task-btn" onclick="watchAd()">
+                <i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন
+            </button>
+        </div>
+    </div>
+
+    <div id="tab-wallet" class="section">
+        <div class="card">
+            <h3 style="text-align: center;">উত্তোলন</h3>
+            <div class="wallet-balance">৳ <span id="walletBalance">0.00</span></div>
+            <p style="text-align: center; font-size: 12px; color: #777;">মিনিমাম উইথড্র: ৳ <span id="minWithdraw">0</span></p>
+
+            <select id="withdrawMethod" class="login-input">
+                <option value="Bkash">বিকাশ (Bkash)</option>
+                <option value="Nagad">নগদ (Nagad)</option>
+                <option value="Rocket">রকেট (Rocket)</option>
+            </select>
+            <input type="number" id="withdrawAmount" class="login-input" placeholder="টাকার পরিমাণ">
+            <input type="text" id="withdrawNumber" class="login-input" placeholder="আপনার নাম্বার">
+            <button class="btn-primary" style="background: var(--danger);" onclick="submitWithdraw()">টাকা তুলুন</button>
+        </div>
+    </div>
+
+    <div id="tab-profile" class="section">
+        <div class="card">
+            <h3>প্রোফাইল</h3>
+            <div style="margin-top: 10px;">
+                <p><strong>নাম:</strong> <span id="profileName">...</span></p>
+                <p><strong>জয়েনিং ডেট:</strong> <span id="joinDate">...</span></p>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px dashed var(--primary);">
+                <small>আপনার রেফার কোড:</small>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <input type="text" id="myRefCode" readonly class="login-input" style="margin: 0; text-align: center;">
+                    <button onclick="copyRef()" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 15px;">কপি</button>
+                </div>
+            </div>
+            <button onclick="logout()" class="btn-primary" style="background: #333; margin-top: 20px;">লগআউট</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="bottomNav" class="bottom-nav" style="display: none;">
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>হোম</span></div>
+    <div class="nav-item" onclick="switchTab('task', this)"><i class="fas fa-layer-group"></i><span>টাস্ক</span></div>
+    <div class="nav-item" onclick="switchTab('wallet', this)"><i class="fas fa-wallet"></i><span>ওয়ালেট</span></div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i><span>প্রোফাইল</span></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ⚠️ আপনার FIREBASE CONFIG এখানে বসান ⚠️
+    const firebaseConfig = {
+  apiKey: "AIzaSyAeYKN-wZlvIy7eezYDno4GXww9p_YLdcA",
+  authDomain: "free-income-317de.firebaseapp.com",
+  databaseURL: "https://free-income-317de-default-rtdb.firebaseio.com",
+  projectId: "free-income-317de",
+  storageBucket: "free-income-317de.firebasestorage.app",
+  messagingSenderId: "564502996068",
+  appId: "1:564502996068:web:1024f6bfaebd64b8546b71"
+};
+
+
+    let app, db;
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+    } catch (e) { console.error("Firebase Error"); }
+
+    let currentUser = null;
+    let appSettings = {};
+
+    window.onload = () => {
+        const localUser = localStorage.getItem("earningAppUser");
+        if(localUser) { loginUser(localUser); return; }
+        const sessionUser = sessionStorage.getItem("earningAppUser");
+        if(sessionUser) { loginUser(sessionUser); }
+    };
+
+    // --- AUTH WITH BONUS LOGIC ---
+    window.handleAuth = async () => {
+        const username = document.getElementById("usernameInput").value.trim().toLowerCase();
+        const password = document.getElementById("passwordInput").value.trim();
+        const refCode = document.getElementById("refInput").value.trim();
+        const rememberMe = document.getElementById("rememberMe").checked;
+        const errorMsg = document.getElementById("loginError");
+
+        if(username.length < 4 || password.length < 4) {
+            errorMsg.innerText = "ইউজারনেম এবং পাসওয়ার্ড অন্তত ৪ অক্ষরের হতে হবে।";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        document.getElementById("fullLoader").style.display = "flex";
+
+        try {
+            const userRef = doc(db, "users", username);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                // LOGIN
+                const userData = userSnap.data();
+                if (userData.password === password) {
+                    if(userData.status === "blocked") {
+                        alert("আপনার একাউন্ট ব্লক করা হয়েছে!");
+                        document.getElementById("fullLoader").style.display = "none";
+                        return;
+                    }
+                    saveSession(username, rememberMe);
+                    loginUser(username);
+                } else {
+                    errorMsg.innerText = "পাসওয়ার্ড ভুল হয়েছে!";
+                    errorMsg.style.display = "block";
+                    document.getElementById("fullLoader").style.display = "none";
+                }
+            } else {
+                // REGISTER & BONUS
+                if(!confirm("এই নামে নতুন একাউন্ট খুলবেন?")) {
+                    document.getElementById("fullLoader").style.display = "none";
+                    return;
+                }
+
+                // ১. এডমিন সেটিংস থেকে বোনাসের পরিমাণ জানা
+                const settingsRef = doc(db, "settings", "config");
+                const settingsSnap = await getDoc(settingsRef);
+                let signupBonus = 0;
+                let referralBonusAmount = 0;
+                
+                if(settingsSnap.exists()) {
+                    const s = settingsSnap.data();
+                    signupBonus = s.signup_bonus || 0; // এডমিন সেট করা বোনাস
+                    referralBonusAmount = s.referral_bonus || 0; // এডমিন সেট করা রেফার বোনাস
+                }
+
+                // ২. নতুন ইউজার তৈরি (বোনাস সহ)
+                await setDoc(userRef, {
+                    username: username,
+                    password: password,
+                    balance: signupBonus, // সাইনআপ বোনাস যোগ হলো
+                    ads_today: 0,
+                    total_ads: 0,
+                    total_ref: 0,
+                    referred_by: refCode || "none",
+                    status: "active",
+                    join_date: new Date().toDateString(),
+                    created_at: serverTimestamp()
+                });
+
+                // ৩. রেফারেল বোনাস দেওয়া (যদি রেফার কোড থাকে)
+                if(refCode && refCode !== username) {
+                    const refUserRef = doc(db, "users", refCode);
+                    const refUserSnap = await getDoc(refUserRef);
+                    if(refUserSnap.exists()) {
+                        await updateDoc(refUserRef, {
+                            balance: increment(referralBonusAmount), // রেফারকারী টাকা পেল
+                            total_ref: increment(1)
+                        });
+                    }
+                }
+
+                alert(`স্বাগতম! আপনি ${signupBonus} টাকা সাইনআপ বোনাস পেয়েছেন!`);
+                saveSession(username, rememberMe);
+                loginUser(username);
+            }
+
+        } catch (error) {
+            alert("ত্রুটি: " + error.message);
+            document.getElementById("fullLoader").style.display = "none";
+        }
+    };
+
+    function saveSession(username, remember) {
+        if(remember) localStorage.setItem("earningAppUser", username);
+        else sessionStorage.setItem("earningAppUser", username);
+    }
+
+    function loginUser(username) {
+        currentUser = username;
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("app-view").style.display = "block";
+        document.getElementById("bottomNav").style.display = "flex";
+        document.getElementById("fullLoader").style.display = "none";
+        loadUserData(username);
+        loadSettings();
+    }
+
+    function loadUserData(username) {
+        onSnapshot(doc(db, "users", username), (doc) => {
+            if(doc.exists()) {
+                const data = doc.data();
+                document.getElementById("displayUsername").innerText = data.username;
+                document.getElementById("profileName").innerText = data.username;
+                document.getElementById("headerBalance").innerText = data.balance.toFixed(2);
+                document.getElementById("walletBalance").innerText = data.balance.toFixed(2);
+                document.getElementById("adsToday").innerText = data.ads_today;
+                document.getElementById("totalRef").innerText = data.total_ref || 0;
+                document.getElementById("joinDate").innerText = data.join_date;
+                document.getElementById("myRefCode").value = data.username;
+            }
+        });
+    }
+
+    function loadSettings() {
+        onSnapshot(doc(db, "settings", "config"), (docSnap) => {
+            if(docSnap.exists()) {
+                appSettings = docSnap.data();
+                const limit = appSettings.daily_ad_limit || 10;
+                const done = parseInt(document.getElementById("adsToday").innerText) || 0;
+                document.getElementById("limitDisplay").innerText = `${done}/${limit}`;
+                document.getElementById("minWithdraw").innerText = appSettings.min_withdraw || 50;
+
+                if(appSettings.notice_text) {
+                    document.getElementById("noticeArea").style.display = "block";
+                    document.getElementById("noticeText").innerText = appSettings.notice_text;
+                }
+            }
+        });
+    }
+
+    window.watchAd = async () => {
+        if(!currentUser) return;
+        const currentDone = parseInt(document.getElementById("adsToday").innerText);
+        const limit = appSettings.daily_ad_limit || 10;
+        
+        if(currentDone >= limit) { alert("আজকের লিমিট শেষ!"); return; }
+
+        const btn = document.getElementById("adBtn");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোডিং...';
+
+        setTimeout(async () => {
+            try {
+                await updateDoc(doc(db, "users", currentUser), {
+                    balance: increment(appSettings.ad_reward || 0.50),
+                    ads_today: increment(1),
+                    total_ads: increment(1)
+                });
+                alert("বোনাস যোগ হয়েছে!");
+            } catch (e) { console.error(e); }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
+        }, 5000); 
+    };
+
+    window.joinChannel = () => {
+        if(appSettings.channel_link) window.open(appSettings.channel_link, "_blank");
+        else alert("চ্যানেল লিংক নেই");
+    };
+
+    window.submitWithdraw = async () => {
+        const amount = parseFloat(document.getElementById("withdrawAmount").value);
+        const number = document.getElementById("withdrawNumber").value;
+        const method = document.getElementById("withdrawMethod").value;
+        const currentBal = parseFloat(document.getElementById("walletBalance").innerText);
+        const min = appSettings.min_withdraw || 50;
+
+        if(!amount || !number) return alert("সব তথ্য দিন");
+        if(amount < min) return alert(`মিনিমাম ${min} টাকা।`);
+        if(amount > currentBal) return alert("ব্যালেন্স নেই!");
+
+        try {
+            document.getElementById("fullLoader").style.display = "flex";
+            await updateDoc(doc(db, "users", currentUser), { balance: increment(-amount) });
+            await addDoc(collection(db, "withdrawals"), {
+                user_id: currentUser, amount: amount, method: method, number: number, status: "pending", date: serverTimestamp()
+            });
+            alert("রিকোয়েস্ট সফল!");
+            document.getElementById("withdrawAmount").value = "";
+            document.getElementById("withdrawNumber").value = "";
+        } catch (e) { alert("ত্রুটি: " + e.message); }
+        document.getElementById("fullLoader").style.display = "none";
+    };
+
+    window.copyRef = () => {
+        document.getElementById("myRefCode").select();
+        document.execCommand("copy");
+        alert("কপি হয়েছে!");
+    };
+
+    window.logout = () => {
+        localStorage.removeItem("earningAppUser");
+        sessionStorage.removeItem("earningAppUser");
+        location.reload();
+    };
+
+    window.switchTab = (tabName, element) => {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if(element) element.classList.add('active');
+    };
+</script>
+
+</body>
+</html>
