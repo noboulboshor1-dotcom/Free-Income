@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mini App Earner</title>
     
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -133,7 +134,9 @@
         
         <input type="text" id="usernameInput" class="login-input" placeholder="ইউজারনেম (English)">
         <input type="password" id="passwordInput" class="login-input" placeholder="পাসওয়ার্ড দিন">
-        <input type="text" id="refInput" class="login-input" placeholder="রেফার কোড (যদি থাকে)">
+        
+        <label style="font-size: 12px; color: #777; display: block; text-align: left; margin-top: 5px;">রেফার কোড (অটোমেটিক)</label>
+        <input type="text" id="refInput" class="login-input" placeholder="Referral Code" style="background: #eee;">
         
         <div class="checkbox-container">
             <input type="checkbox" id="rememberMe" style="width: 18px; height: 18px;">
@@ -222,11 +225,12 @@
                 <p><strong>জয়েনিং ডেট:</strong> <span id="joinDate">...</span></p>
             </div>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px dashed var(--primary);">
-                <small>আপনার রেফার কোড:</small>
+                <small>আপনার রেফার লিংক:</small>
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <input type="text" id="myRefCode" readonly class="login-input" style="margin: 0; text-align: center;">
+                    <input type="text" id="myRefLink" readonly class="login-input" style="margin: 0; font-size: 12px; color: blue;">
                     <button onclick="copyRef()" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 15px;">কপি</button>
                 </div>
+                <p style="font-size: 11px; color: #777; margin-top: 5px;">বন্ধুরা এই লিংকে ক্লিক করলেই আপনি বোনাস পাবেন।</p>
             </div>
             <button onclick="logout()" class="btn-primary" style="background: #333; margin-top: 20px;">লগআউট</button>
         </div>
@@ -257,6 +261,15 @@
 };
 
 
+    // ===============================================
+    // 🔥 আপনার বটের নাম এখানে দিন 🔥 (লিংক তৈরির জন্য)
+    // ===============================================
+    const telegramAppConfig = {
+        botUsername: "Free_income653Bot",  // আপনার বটের ইউজারনেম (ex: MyBot)
+        appName: "Free Income"                // BotFather এ দেওয়া Short Name
+    };
+    // ===============================================
+
     let app, db;
     try {
         app = initializeApp(firebaseConfig);
@@ -267,17 +280,33 @@
     let appSettings = {};
 
     window.onload = () => {
+        // ১. অটো রেফার কোড ধরা (Start Param)
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // টেলিগ্রামে ফুল স্ক্রিন করবে
+
+        // লিংকে যদি ?startapp=code থাকে, তবে তা ধরা হবে
+        if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+            const refCode = tg.initDataUnsafe.start_param;
+            const refInput = document.getElementById("refInput");
+            if(refInput) {
+                refInput.value = refCode;
+                refInput.readOnly = true; // ইউজার যাতে চেঞ্জ করতে না পারে
+                // অপশনাল: ইউজারকে জানানো
+                // alert("রেফার কোড অ্যাপ্লাই করা হয়েছে: " + refCode);
+            }
+        }
+
         const localUser = localStorage.getItem("earningAppUser");
         if(localUser) { loginUser(localUser); return; }
         const sessionUser = sessionStorage.getItem("earningAppUser");
         if(sessionUser) { loginUser(sessionUser); }
     };
 
-    // --- AUTH LOGIC (BONUS INCLUDED) ---
+    // --- AUTH LOGIC ---
     window.handleAuth = async () => {
         const username = document.getElementById("usernameInput").value.trim().toLowerCase();
         const password = document.getElementById("passwordInput").value.trim();
-        const refCode = document.getElementById("refInput").value.trim();
+        const refCode = document.getElementById("refInput").value.trim(); // অটোমেটিক বসে থাকা কোড
         const rememberMe = document.getElementById("rememberMe").checked;
         const errorMsg = document.getElementById("loginError");
 
@@ -294,7 +323,6 @@
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
-                // LOGIN
                 const userData = userSnap.data();
                 if (userData.password === password) {
                     if(userData.status === "blocked") {
@@ -310,7 +338,6 @@
                     document.getElementById("fullLoader").style.display = "none";
                 }
             } else {
-                // REGISTER
                 if(!confirm("এই নামে নতুন একাউন্ট খুলবেন?")) {
                     document.getElementById("fullLoader").style.display = "none";
                     return;
@@ -328,7 +355,6 @@
                     referralBonusAmount = s.referral_bonus || 0;
                 }
 
-                // ইউজার তৈরি
                 await setDoc(userRef, {
                     username: username,
                     password: password,
@@ -342,7 +368,6 @@
                     created_at: serverTimestamp()
                 });
 
-                // রেফার বোনাস প্রদান
                 if(refCode && refCode !== username) {
                     const refUserRef = doc(db, "users", refCode);
                     const refUserSnap = await getDoc(refUserRef);
@@ -391,7 +416,11 @@
                 document.getElementById("adsToday").innerText = data.ads_today;
                 document.getElementById("totalRef").innerText = data.total_ref || 0;
                 document.getElementById("joinDate").innerText = data.join_date;
-                document.getElementById("myRefCode").value = data.username;
+                
+                // 🔥 রেফার লিংক তৈরি 🔥
+                // Format: https://t.me/BotName/AppName?startapp=username
+                const link = `https://t.me/${telegramAppConfig.botUsername}/${telegramAppConfig.appName}?startapp=${data.username}`;
+                document.getElementById("myRefLink").value = link;
             }
         });
     }
@@ -404,7 +433,6 @@
                 const done = parseInt(document.getElementById("adsToday").innerText) || 0;
                 document.getElementById("limitDisplay").innerText = `${done}/${limit}`;
                 document.getElementById("minWithdraw").innerText = appSettings.min_withdraw || 50;
-
                 if(appSettings.notice_text) {
                     document.getElementById("noticeArea").style.display = "block";
                     document.getElementById("noticeText").innerText = appSettings.notice_text;
@@ -413,27 +441,20 @@
         });
     }
 
-    // --- AD SYSTEM (MONETAG SDK FIXED) ---
+    // --- AD SYSTEM ---
     window.watchAd = async () => {
         if(!currentUser) return;
-        
         const currentDone = parseInt(document.getElementById("adsToday").innerText);
         const limit = appSettings.daily_ad_limit || 10;
         
-        if(currentDone >= limit) {
-            alert("আজকের লিমিট শেষ! আগামীকাল আবার আসুন।");
-            return;
-        }
+        if(currentDone >= limit) { alert("আজকের লিমিট শেষ!"); return; }
 
         const btn = document.getElementById("adBtn");
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোডিং...';
 
-        // MONETAG SDK CALL: show_10337526
         if (typeof window.show_10337526 === 'function') {
-            
             window.show_10337526().then(async () => {
-                // Success
                 try {
                     await updateDoc(doc(db, "users", currentUser), {
                         balance: increment(appSettings.ad_reward || 0.50),
@@ -442,21 +463,15 @@
                     });
                     alert("বোনাস যোগ হয়েছে!");
                 } catch (e) { console.error(e); }
-                
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
-
             }).catch((e) => {
-                // Error / Closed early
-                alert("অ্যাডটি সম্পূর্ণ দেখা হয়নি বা লোড হয়নি।");
-                console.error(e);
+                alert("অ্যাডটি সম্পূর্ণ দেখা হয়নি।");
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
             });
-
         } else {
-            // Script not ready
-            alert("অ্যাড লোড হচ্ছে... অনুগ্রহ করে একটু পর আবার ক্লিক করুন।");
+            alert("অ্যাড লোড হচ্ছে... আবার চেষ্টা করুন।");
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
         }
@@ -492,9 +507,9 @@
     };
 
     window.copyRef = () => {
-        document.getElementById("myRefCode").select();
+        document.getElementById("myRefLink").select();
         document.execCommand("copy");
-        alert("কপি হয়েছে!");
+        alert("লিংক কপি হয়েছে!");
     };
 
     window.logout = () => {
