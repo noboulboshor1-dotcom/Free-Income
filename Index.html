@@ -273,7 +273,7 @@
         if(sessionUser) { loginUser(sessionUser); }
     };
 
-    // --- AUTH WITH BONUS LOGIC ---
+    // --- AUTH LOGIC (BONUS INCLUDED) ---
     window.handleAuth = async () => {
         const username = document.getElementById("usernameInput").value.trim().toLowerCase();
         const password = document.getElementById("passwordInput").value.trim();
@@ -282,7 +282,7 @@
         const errorMsg = document.getElementById("loginError");
 
         if(username.length < 4 || password.length < 4) {
-            errorMsg.innerText = "ইউজারনেম এবং পাসওয়ার্ড অন্তত ৪ অক্ষরের হতে হবে।";
+            errorMsg.innerText = "নাম ও পাসওয়ার্ড অন্তত ৪ অক্ষরের হতে হবে।";
             errorMsg.style.display = "block";
             return;
         }
@@ -310,13 +310,13 @@
                     document.getElementById("fullLoader").style.display = "none";
                 }
             } else {
-                // REGISTER & BONUS
+                // REGISTER
                 if(!confirm("এই নামে নতুন একাউন্ট খুলবেন?")) {
                     document.getElementById("fullLoader").style.display = "none";
                     return;
                 }
 
-                // ১. এডমিন সেটিংস থেকে বোনাসের পরিমাণ জানা
+                // বোনাস চেক
                 const settingsRef = doc(db, "settings", "config");
                 const settingsSnap = await getDoc(settingsRef);
                 let signupBonus = 0;
@@ -324,15 +324,15 @@
                 
                 if(settingsSnap.exists()) {
                     const s = settingsSnap.data();
-                    signupBonus = s.signup_bonus || 0; // এডমিন সেট করা বোনাস
-                    referralBonusAmount = s.referral_bonus || 0; // এডমিন সেট করা রেফার বোনাস
+                    signupBonus = s.signup_bonus || 0;
+                    referralBonusAmount = s.referral_bonus || 0;
                 }
 
-                // ২. নতুন ইউজার তৈরি (বোনাস সহ)
+                // ইউজার তৈরি
                 await setDoc(userRef, {
                     username: username,
                     password: password,
-                    balance: signupBonus, // সাইনআপ বোনাস যোগ হলো
+                    balance: signupBonus,
                     ads_today: 0,
                     total_ads: 0,
                     total_ref: 0,
@@ -342,19 +342,19 @@
                     created_at: serverTimestamp()
                 });
 
-                // ৩. রেফারেল বোনাস দেওয়া (যদি রেফার কোড থাকে)
+                // রেফার বোনাস প্রদান
                 if(refCode && refCode !== username) {
                     const refUserRef = doc(db, "users", refCode);
                     const refUserSnap = await getDoc(refUserRef);
                     if(refUserSnap.exists()) {
                         await updateDoc(refUserRef, {
-                            balance: increment(referralBonusAmount), // রেফারকারী টাকা পেল
+                            balance: increment(referralBonusAmount),
                             total_ref: increment(1)
                         });
                     }
                 }
 
-                alert(`স্বাগতম! আপনি ${signupBonus} টাকা সাইনআপ বোনাস পেয়েছেন!`);
+                alert(`স্বাগতম! আপনি ${signupBonus} টাকা বোনাস পেয়েছেন!`);
                 saveSession(username, rememberMe);
                 loginUser(username);
             }
@@ -413,29 +413,53 @@
         });
     }
 
+    // --- AD SYSTEM (MONETAG SDK FIXED) ---
     window.watchAd = async () => {
         if(!currentUser) return;
+        
         const currentDone = parseInt(document.getElementById("adsToday").innerText);
         const limit = appSettings.daily_ad_limit || 10;
         
-        if(currentDone >= limit) { alert("আজকের লিমিট শেষ!"); return; }
+        if(currentDone >= limit) {
+            alert("আজকের লিমিট শেষ! আগামীকাল আবার আসুন।");
+            return;
+        }
 
         const btn = document.getElementById("adBtn");
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লোডিং...';
 
-        setTimeout(async () => {
-            try {
-                await updateDoc(doc(db, "users", currentUser), {
-                    balance: increment(appSettings.ad_reward || 0.50),
-                    ads_today: increment(1),
-                    total_ads: increment(1)
-                });
-                alert("বোনাস যোগ হয়েছে!");
-            } catch (e) { console.error(e); }
+        // MONETAG SDK CALL: show_10337526
+        if (typeof window.show_10337526 === 'function') {
+            
+            window.show_10337526().then(async () => {
+                // Success
+                try {
+                    await updateDoc(doc(db, "users", currentUser), {
+                        balance: increment(appSettings.ad_reward || 0.50),
+                        ads_today: increment(1),
+                        total_ads: increment(1)
+                    });
+                    alert("বোনাস যোগ হয়েছে!");
+                } catch (e) { console.error(e); }
+                
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
+
+            }).catch((e) => {
+                // Error / Closed early
+                alert("অ্যাডটি সম্পূর্ণ দেখা হয়নি বা লোড হয়নি।");
+                console.error(e);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
+            });
+
+        } else {
+            // Script not ready
+            alert("অ্যাড লোড হচ্ছে... অনুগ্রহ করে একটু পর আবার ক্লিক করুন।");
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন';
-        }, 5000); 
+        }
     };
 
     window.joinChannel = () => {
