@@ -89,6 +89,11 @@
         .stat-item { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         .wallet-balance { font-size: 32px; font-weight: 700; color: var(--primary); text-align: center; margin: 20px 0; }
+        
+        /* Helper Text Styles */
+        .info-text { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.6; }
+        .rule-list { font-size: 13px; color: #555; padding-left: 20px; margin-bottom: 15px; }
+        .rule-list li { margin-bottom: 5px; }
 
         /* --- BOTTOM NAVIGATION --- */
         .bottom-nav {
@@ -129,14 +134,14 @@
         <div style="font-size: 40px; color: var(--primary); margin-bottom: 10px;">
             <i class="fas fa-gift"></i>
         </div>
-        <h2>লগইন / বোনাস</h2>
-        <p style="color: #666; font-size: 14px;">প্রথমবার লগইন করলেই পাচ্ছেন বোনাস!</p>
+        <h2>লগইন / সাইনআপ</h2>
+        <p style="color: #666; font-size: 14px;">আপনার ইউজারনেম দিয়ে লগইন করুন</p>
         
-        <input type="text" id="usernameInput" class="login-input" placeholder="ইউজারনেম (English)">
+        <input type="text" id="usernameInput" class="login-input" placeholder="ইউজারনেম (English, ছোট হাতের)">
         <input type="password" id="passwordInput" class="login-input" placeholder="পাসওয়ার্ড দিন">
         
         <label style="font-size: 12px; color: #777; display: block; text-align: left; margin-top: 5px;">রেফার কোড (অটোমেটিক)</label>
-        <input type="text" id="refInput" class="login-input" placeholder="Referral Code" style="background: #eee;">
+        <input type="text" id="refInput" class="login-input" placeholder="Referral Code" style="background: #eee;" readonly>
         
         <div class="checkbox-container">
             <input type="checkbox" id="rememberMe" style="width: 18px; height: 18px;">
@@ -151,7 +156,7 @@
 <div id="app-view">
     <div class="header">
         <div>
-            <span style="font-size: 14px; opacity: 0.9;">Hello,</span><br>
+            <span style="font-size: 14px; opacity: 0.9;">স্বাগতম,</span><br>
             <strong id="displayUsername" style="font-size: 18px;">User</strong>
         </div>
         <div class="balance-badge">
@@ -179,7 +184,7 @@
 
         <div class="card">
             <h3>আমাদের চ্যানেল</h3>
-            <p style="font-size: 13px; color: #666;">আপডেট পেতে এখনই জয়েন করুন</p>
+            <p style="font-size: 13px; color: #666;">সকল আপডেট এবং পেমেন্ট প্রুফ পেতে আমাদের টেলিগ্রাম চ্যানেলে জয়েন থাকুন।</p>
             <button class="channel-btn" onclick="joinChannel()">
                 <i class="fab fa-telegram-plane"></i> Join Telegram
             </button>
@@ -189,22 +194,35 @@
     <div id="tab-task" class="section">
         <div class="card" style="text-align: center;">
             <h3>ভিডিও টাস্ক</h3>
-            <p>ভিডিও দেখে আয় করুন।</p>
+            <p class="info-text">নিচের বাটনে ক্লিক করে বিজ্ঞাপন দেখুন এবং আয় করুন। সম্পূর্ণ বিজ্ঞাপন না দেখলে টাকা যোগ হবে না।</p>
+            
             <div style="margin: 20px 0;">
                 <span style="font-size: 14px; color: #555;">আজকের বাকি: </span>
                 <strong style="color: var(--primary);" id="limitDisplay">0/0</strong>
             </div>
+            
             <button id="adBtn" class="task-btn" onclick="watchAd()">
                 <i class="fas fa-play-circle"></i> বিজ্ঞাপন দেখুন
             </button>
+
+            <div style="text-align: left; background: #f9f9f9; padding: 10px; border-radius: 10px; margin-top: 15px;">
+                <strong style="font-size: 13px;">⚠️ নিয়মাবলী:</strong>
+                <ul class="rule-list">
+                    <li>প্রতিদিন নির্দিষ্ট সংখ্যক অ্যাড দেখতে পারবেন।</li>
+                    <li>অ্যাড দেখার সময় ব্যাক করবেন না।</li>
+                    <li>ভিপিএন ব্যবহার করা সম্পূর্ণ নিষিদ্ধ।</li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <div id="tab-wallet" class="section">
         <div class="card">
-            <h3 style="text-align: center;">উত্তোলন</h3>
+            <h3 style="text-align: center;">টাকা উত্তোলন</h3>
             <div class="wallet-balance">৳ <span id="walletBalance">0.00</span></div>
-            <p style="text-align: center; font-size: 12px; color: #777;">মিনিমাম উইথড্র: ৳ <span id="minWithdraw">0</span></p>
+            <p style="text-align: center; font-size: 12px; color: #777;">মিনিমাম উইথড্র: ৳ <span id="minWithdraw">50</span></p>
+
+            <p class="info-text" style="text-align: center;">আপনার উপার্জিত টাকা বিকাশ, নগদ বা রকেটের মাধ্যমে তুলতে পারবেন।</p>
 
             <select id="withdrawMethod" class="login-input">
                 <option value="Bkash">বিকাশ (Bkash)</option>
@@ -214,6 +232,208 @@
             <input type="number" id="withdrawAmount" class="login-input" placeholder="টাকার পরিমাণ">
             <input type="text" id="withdrawNumber" class="login-input" placeholder="আপনার নাম্বার">
             <button class="btn-primary" style="background: var(--danger);" onclick="submitWithdraw()">টাকা তুলুন</button>
+            
+            </div>
+    </div>
+
+    <div id="tab-profile" class="section">
+        <div class="card">
+            <h3>প্রোফাইল</h3>
+            <div style="margin-top: 10px;">
+                <p><strong>নাম:</strong> <span id="profileName">...</span></p>
+                <p><strong>জয়েনিং ডেট:</strong> <span id="joinDate">...</span></p>
+                <p><strong>স্ট্যাটাস:</strong> <span id="userStatus" style="color: green;">Active</span></p>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px dashed var(--primary);">
+                <small>আপনার রেফার লিংক:</small>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <input type="text" id="myRefLink" readonly class="login-input" style="margin: 0; font-size: 12px; color: blue;">
+                    <button onclick="copyRef()" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 15px;">কপি</button>
+                </div>
+                <p style="font-size: 11px; color: #777; margin-top: 5px;">
+                    আপনার বন্ধু আপনার লিংকে জয়েন করে কাজ করলে আপনি বোনাস পাবেন।
+                </p>
+            </div>
+            <button onclick="logout()" class="btn-primary" style="background: #333; margin-top: 20px;">লগআউট</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="bottomNav" class="bottom-nav" style="display: none;">
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i><span>হোম</span></div>
+    <div class="nav-item" onclick="switchTab('task', this)"><i class="fas fa-layer-group"></i><span>টাস্ক</span></div>
+    <div class="nav-item" onclick="switchTab('wallet', this)"><i class="fas fa-wallet"></i><span>ওয়ালেট</span></div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i><span>প্রোফাইল</span></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, increment, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ⚠️ আপনার FIREBASE CONFIG (অপরিবর্তিত) ⚠️
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeYKN-wZlvIy7eezYDno4GXww9p_YLdcA",
+      authDomain: "free-income-317de.firebaseapp.com",
+      databaseURL: "https://free-income-317de-default-rtdb.firebaseio.com",
+      projectId: "free-income-317de",
+      storageBucket: "free-income-317de.firebasestorage.app",
+      messagingSenderId: "564502996068",
+      appId: "1:564502996068:web:1024f6bfaebd64b8546b71"
+    };
+
+    // ===============================================
+    // 🔥 টেলিগ্রাম কনফিগারেশন (আপনার বটের নাম দিন) 🔥
+    // ===============================================
+    const telegramAppConfig = {
+        botUsername: "Free_income653Bot",  // আপনার বটের ইউজারনেম (ex: MyBot)
+        appName: "FreeIncome"              // BotFather এ দেওয়া App Short Name
+    };
+    
+    let app, db;
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+    } catch (e) { console.error("Firebase Error", e); }
+
+    let currentUser = null;
+    let appSettings = {};
+
+    window.onload = () => {
+        // ১. অটো রেফার কোড ধরা (Telegram Start Param)
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Telegram এর start_param থেকে রেফার কোড ধরা
+        if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+            const refCode = tg.initDataUnsafe.start_param;
+            const refInput = document.getElementById("refInput");
+            if(refInput) {
+                refInput.value = refCode;
+                // refInput.readOnly = true; HTML এ এমনিতেই readonly দেওয়া আছে
+            }
+        }
+
+        // অটো লগইন চেক
+        const localUser = localStorage.getItem("earningAppUser");
+        if(localUser) { loginUser(localUser); return; }
+        const sessionUser = sessionStorage.getItem("earningAppUser");
+        if(sessionUser) { loginUser(sessionUser); }
+    };
+
+    // --- AUTH LOGIC (Updated) ---
+    window.handleAuth = async () => {
+        const username = document.getElementById("usernameInput").value.trim().toLowerCase();
+        const password = document.getElementById("passwordInput").value.trim();
+        const refCode = document.getElementById("refInput").value.trim();
+        const rememberMe = document.getElementById("rememberMe").checked;
+        const errorMsg = document.getElementById("loginError");
+
+        // সাধারণ ভ্যালিডেশন
+        if(username.length < 4 || password.length < 4) {
+            errorMsg.innerText = "ইউজারনেম ও পাসওয়ার্ড অন্তত ৪ অক্ষরের হতে হবে।";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        // স্পেস বা বিশেষ ক্যারেক্টার চেক
+        if (/[^a-z0-9]/.test(username)) {
+            errorMsg.innerText = "ইউজারনেমে শুধু ইংরেজি ছোট হাতের অক্ষর ও সংখ্যা ব্যবহার করুন (কোন স্পেস নয়)।";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        document.getElementById("fullLoader").style.display = "flex";
+        errorMsg.style.display = "none";
+
+        try {
+            const userRef = doc(db, "users", username);
+            const userSnap = await getDoc(userRef);
+
+            // ১. যদি ইউজার থাকে -> লগইন
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                if (userData.password === password) {
+                    if(userData.status === "blocked") {
+                        alert("আপনার একাউন্ট ব্লক করা হয়েছে! অ্যাডমিনের সাথে যোগাযোগ করুন।");
+                        document.getElementById("fullLoader").style.display = "none";
+                        return;
+                    }
+                    saveSession(username, rememberMe);
+                    loginUser(username);
+                } else {
+                    errorMsg.innerText = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+                    errorMsg.style.display = "block";
+                    document.getElementById("fullLoader").style.display = "none";
+                }
+            } 
+            // ২. যদি ইউজার না থাকে -> সাইনআপ
+            else {
+                if(!confirm(`"${username}" নামে নতুন একাউন্ট খুলতে চান?`)) {
+                    document.getElementById("fullLoader").style.display = "none";
+                    return;
+                }
+
+                // সেটিংস থেকে বোনাস তথ্য নেওয়া
+                const settingsRef = doc(db, "settings", "config");
+                const settingsSnap = await getDoc(settingsRef);
+                let signupBonus = 0;
+                
+                if(settingsSnap.exists()) {
+                    const s = settingsSnap.data();
+                    signupBonus = s.signup_bonus || 0;
+                }
+
+                const todayStr = new Date().toDateString();
+
+                // নতুন ইউজার ডাটা তৈরি
+                await setDoc(userRef, {
+                    username: username,
+                    password: password,
+                    balance: signupBonus,
+                    ads_today: 0,
+                    total_ads: 0,
+                    total_ref: 0,
+                    referred_by: refCode || "none", // রেফারার সেট করা
+                    referral_paid: false, // রেফার বোনাস দেওয়া হয়েছে কিনা
+                    status: "active",
+                    last_ad_date: todayStr, // রিসেট লজিকের জন্য গুরুত্বপূর্ণ
+                    join_date: todayStr,
+                    created_at: serverTimestamp()
+                });
+
+                // রেফারার কাউন্ট বাড়ানো (কিন্তু ব্যালেন্স এখনই না)
+                if(refCode && refCode !== username) {
+                    const refUserRef = doc(db, "users", refCode);
+                    const refUserSnap = await getDoc(refUserRef);
+                    if(refUserSnap.exists()) {
+                        await updateDoc(refUserRef, {
+                            total_ref: increment(1)
+                        });
+                    }
+                }
+
+                alert(`স্বাগতম! আপনি ${signupBonus} টাকা সাইনআপ বোনাস পেয়েছেন!`);
+                saveSession(username, rememberMe);
+                loginUser(username);
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("ত্রুটি: ইন্টারনেট কানেকশন চেক করুন।");
+            document.getElementById("fullLoader").style.display = "none";
+        }
+    };
+
+    function saveSession(username, remember) {
+        if(remember) localStorage.setItem("earningAppUser", username);
+        else sessionStorage.setItem("earningAppUser", username);
+    }
+
+    function loginUser(username) {
+        currentUser = username;
+        document.getElementById("login-view").style.display = "none";
+        document.getEle class="btn-primary" style="background: var(--danger);" onclick="submitWithdraw()">টাকা তুলুন</button>
         </div>
     </div>
 
